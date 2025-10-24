@@ -1,13 +1,17 @@
-Start docker compose:
+### 1. Setup environment:
+
+ - Create `.env` file based on `/templates/.env-local` template.
+
+### 2. Start docker compose:
 
 ```bash
 docker-compose up -d
 ```
 
-Access n8n: https://n8n.localhost/
+### 3. Access n8n: http://localhost:5678/
 
 
-Stop docker compose:
+### 4. Stop docker compose:
 
 ```bash
 docker-compose stop
