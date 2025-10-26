@@ -1,1 +1,20 @@
 .env
+.DS_Store
+
+
+# SSL
+ssl/cert.pem
+ssl/key.pem
+ssl/chain.pem
+ssl/fullchain.pem
+
+# Environment
+.env
+
+# OS
+.DS_Store
+.vscode/
+*.log
+
+# Keeper
+!ssl/.gitkeep
