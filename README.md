@@ -86,11 +86,11 @@ sudo docker-compose -f docker-compose.prod.yml up -d
 sudo docker-compose -f docker-compose.prod.yml logs -f nginx
 ```
 
-### 7. Configure redirection in dns provider.
+### 7. Configure redirection in dns provider and wait for propagation:
 
-### 8.1. Access n8n if dns ready: https://n8n.tiagoramirez.lat/
+Check propagation: https://mxtoolbox.com/DNSLookup.aspx
 
-### 8.2. Access n8n if dns not ready: https://<ip_address>/
+### 8. Access n8n if dns ready: https://n8n.tiagoramirez.lat/
 
 ### 9. Stop docker compose:
 
