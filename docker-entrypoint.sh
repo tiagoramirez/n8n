@@ -44,8 +44,10 @@ generate_certs() {
     
     # Verify if it was successful by searching for the success message
     if grep -q "Successfully received certificate" /tmp/certbot.log; then
+        echo -e "${GREEN}✅ Received successfull message${NC}"
         # Copy certificates to nginx location
         if [ -f "$LETSENCRYPT_PATH/live/$FULL_DOMAIN/fullchain.pem" ]; then
+            echo -e "${GREEN}✅ Copying certificates to nginx location${NC}"
             cp $LETSENCRYPT_PATH/live/$FULL_DOMAIN/fullchain.pem $CERT_PATH/cert.pem
             cp $LETSENCRYPT_PATH/live/$FULL_DOMAIN/privkey.pem $CERT_PATH/key.pem
             chmod 600 $CERT_PATH/key.pem
