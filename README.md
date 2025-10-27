@@ -2,25 +2,42 @@
 
 ## Development
 
-### 1. Setup environment:
+### 1. Clone repository
 
- - Create `.env` file based on `.env.example` template.
+### 2. Setup environment:
 
-### 2. Start docker compose:
+- Create `.env` file based on `.env.example` template.
+
+```bash
+cp .env.example .env
+```
+
+### 3. Generate auto-signed certificate (just once)
+
+```bash
+mkdir -p ssl
+openssl req -x509 -newkey rsa:4096 \
+  -keyout ssl/key.pem \
+  -out ssl/cert.pem \
+  -days 365 -nodes \
+  -subj "/CN=localhost"
+```
+
+### 4. Start docker compose:
 
 ```bash
 docker-compose up -d
 ```
 
-### 3.1 Access n8n: http://localhost:5678/
+### 5 Access n8n: https://n8n.localhost
 
-### 3.2 Reload nginx
+### 6. Watch logs:
 
 ```bash
-docker-compose exec nginx nginx -s reload
+docker-compose logs -f
 ```
 
-### 4. Stop docker compose:
+### 7. Stop docker compose:
 
 ```bash
 docker-compose stop
