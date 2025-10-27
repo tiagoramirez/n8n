@@ -45,28 +45,28 @@ docker-compose stop
 
 ## Production (AWS)
 
-### 0. Update system y add pre-requisites:
+### 1. Connect to EC2 instance:
+
+`Example with AWS EC2 instance (ubuntu)`
+```bash
+ssh -i {key_file} ubuntu@{ip_address}
+```
+
+### 2. Update system y add pre-requisites:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y docker.io docker-compose
 ```
 
-### 1. Connect to EC2 instance:
-
-`Example with AWS EC2 instance (ubuntu)`
-```bash
-ssh -i ~/.ssh/{key_name} ubuntu@{ip_address}
-```
-
-### 2. Clone repository into EC2 instance with ssl:
+### 3. Clone repository into EC2 instance with ssl:
 
 ```bash
 git clone git@github.com:tiagoramirez/n8n.git
 cd /n8n
 ```
 
-### 3. Setup environment:
+### 4. Setup environment:
 
 - Create `.env` file based on `.env.example` template.
 
@@ -74,23 +74,23 @@ cd /n8n
 cp .env.example .env
 ```
 
-### 4.1. Start docker compose:
+### 5.1. Start docker compose:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### 4.2. Start docker compose with logs:
+### 5.2. Start docker compose with logs:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml logs -f nginx
 ```
 
-### 5. Configure redirection in dns provider.
+### 6. Configure redirection in dns provider.
 
-### 6. Access n8n: http://n8n.tiagoramirez.lat/
+### 7. Access n8n: https://n8n.tiagoramirez.lat/
 
-### 7. Stop docker compose:
+### 8. Stop docker compose:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml stop
