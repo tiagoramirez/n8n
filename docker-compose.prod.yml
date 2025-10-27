@@ -1,4 +1,3 @@
-# docker-compose.prod.yml
 services:
   nginx:
     build:
@@ -27,7 +26,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # n8n
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
     restart: always
@@ -39,7 +37,7 @@ services:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_ENABLED=true
       - NODE_ENV=production
-      - WEBHOOK_URL=${N8N_HOST}/
+      - WEBHOOK_URL=${N8N_PROTOCOL}://${N8N_HOST}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-America/Argentina/Buenos_Aires}
       - TZ=${TZ:-America/Argentina/Buenos_Aires}
     volumes:
