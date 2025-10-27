@@ -1,12 +1,6 @@
-.env
-.DS_Store
-
-
-# SSL
-ssl/cert.pem
-ssl/key.pem
-ssl/chain.pem
-ssl/fullchain.pem
+# SSL (NUNCA a git)
+ssl/
+certbot/
 
 # Environment
 .env
@@ -15,6 +9,3 @@ ssl/fullchain.pem
 .DS_Store
 .vscode/
 *.log
-
-# Keeper
-!ssl/.gitkeep
