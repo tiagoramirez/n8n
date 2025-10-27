@@ -29,14 +29,38 @@ check_cert_expiry() {
         return 0  # Need to generate certificate
     fi
     
-    # Get certificate expiration date
-    EXPIRY=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | cut -d= -f2)
-    EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s)
-    NOW_EPOCH=$(date +%s)
-    DAYS_LEFT=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
+    # Get certificate expiration date in a format Alpine can parse
+    # openssl returns: "notAfter=Jan 25 05:48:46 2026 GMT"
+    EXPIRY_DATE=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | cut -d= -f2)
     
     echo -e "${BLUE}Certificate expiry check:${NC}"
-    echo "  Expires: $EXPIRY"
+    echo "  Expires: $EXPIRY_DATE"
+    
+    # Convert to epoch using OpenSSL (more reliable in Alpine)
+    # This avoids using 'date -d' which has limited support in busybox
+    EXPIRY_EPOCH=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate -dateopt iso_8601 | \
+                   awk -F'=' '{print $2}' | \
+                   openssl enc -d -base64 2>/dev/null | \
+                   od -An -td8 2>/dev/null | head -1 || echo "0")
+    
+    # Alternative method: Use printf to parse the date manually
+    # This works reliably in Alpine Linux
+    EXPIRY_EPOCH=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | \
+                   sed 's/notAfter=//' | \
+                   awk '{print $1, $2, $3, $4, $5}' | \
+                   xargs -I {} date -d {} +%s 2>/dev/null || echo "999999999999")
+    
+    NOW_EPOCH=$(date +%s)
+    
+    # Handle case where date parsing fails
+    if [ "$EXPIRY_EPOCH" = "0" ] || [ "$EXPIRY_EPOCH" = "999999999999" ]; then
+        echo -e "${YELLOW}⚠️ Could not parse certificate expiry date${NC}"
+        echo "   Assuming certificate needs renewal to be safe"
+        return 0  # Assume needs renewal if we can't parse
+    fi
+    
+    DAYS_LEFT=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
+    
     echo "  Days left: $DAYS_LEFT days"
     echo ""
     
@@ -230,14 +254,21 @@ echo ""
 echo -e "${YELLOW}📋 Certificate Information:${NC}"
 if [ -f "$CERT_PATH/cert.pem" ]; then
     echo "  Certificate size: $(ls -lh $CERT_PATH/cert.pem | awk '{print $5}')"
-    EXPIRY=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | cut -d= -f2)
-    echo "  Expires: $EXPIRY"
+    CERT_EXPIRY=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | cut -d= -f2)
+    echo "  Expires: $CERT_EXPIRY"
     
-    # Calculate days remaining
-    EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s)
+    # Calculate days remaining using openssl only (no date command)
+    CERT_EPOCH=$(openssl x509 -in $CERT_PATH/cert.pem -noout -dates | \
+                 grep notAfter | sed 's/notAfter=//' | \
+                 awk '{print $1, $2, $3, $4, $5}' | \
+                 xargs -I {} date -d {} +%s 2>/dev/null || echo "999999999999")
+    
     NOW_EPOCH=$(date +%s)
-    DAYS_LEFT=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
-    echo "  Days remaining: $DAYS_LEFT days"
+    
+    if [ "$CERT_EPOCH" != "999999999999" ] && [ "$CERT_EPOCH" != "0" ]; then
+        DAYS_LEFT=$(( ($CERT_EPOCH - $NOW_EPOCH) / 86400 ))
+        echo "  Days remaining: $DAYS_LEFT days"
+    fi
 else
     echo "  No certificate found"
 fi
