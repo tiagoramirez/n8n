@@ -74,23 +74,25 @@ cd /n8n
 cp .env.example .env
 ```
 
-### 5.1. Start docker compose:
+### 5. Start docker compose:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### 5.2. Start docker compose with logs:
+### 6. Watch logs:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml logs -f nginx
 ```
 
-### 6. Configure redirection in dns provider.
+### 7. Configure redirection in dns provider.
 
-### 7. Access n8n: https://n8n.tiagoramirez.lat/
+### 8.1. Access n8n if dns ready: https://n8n.tiagoramirez.lat/
 
-### 8. Stop docker compose:
+### 8.2. Access n8n if dns not ready: https://<ip_address>/
+
+### 9. Stop docker compose:
 
 ```bash
 sudo docker-compose -f docker-compose.prod.yml stop
