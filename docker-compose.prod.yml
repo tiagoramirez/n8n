@@ -40,6 +40,9 @@ services:
       - WEBHOOK_URL=${N8N_PROTOCOL}://${N8N_HOST}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-America/Argentina/Buenos_Aires}
       - TZ=${TZ:-America/Argentina/Buenos_Aires}
+      - TRUST_PROXY=true      
+      - NODE_OPTIONS=--max-old-space-size=512
+      - N8N_SECURE_COOKIE=true
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n-data:/files
