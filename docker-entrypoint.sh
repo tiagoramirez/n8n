@@ -21,6 +21,26 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}🚀 Nginx + Certbot Initialization${NC}"
 echo -e "${BLUE}========================================${NC}"
 
+# Function to find the correct certificate directory
+find_cert_dir() {
+    # Certbot can save in any of these paths
+    # Try with the main domain first
+    if [ -d "$LETSENCRYPT_PATH/live/$DOMAIN" ]; then
+        echo "$LETSENCRYPT_PATH/live/$DOMAIN"
+        return 0
+    fi
+    
+    # If not, try with the subdomain
+    if [ -d "$LETSENCRYPT_PATH/live/$FULL_DOMAIN" ]; then
+        echo "$LETSENCRYPT_PATH/live/$FULL_DOMAIN"
+        return 0
+    fi
+    
+    # If not, return the expected path (probably failed)
+    echo "$LETSENCRYPT_PATH/live/$FULL_DOMAIN"
+    return 1
+}
+
 # Function to generate certificates with --standalone
 generate_certs() {
     echo -e "${BLUE}[1/4] Generating certificates with Let's Encrypt...${NC}"
@@ -28,7 +48,6 @@ generate_certs() {
     mkdir -p $CERT_PATH
     
     # Use --standalone: Certbot opens its own temporary HTTP server
-    # Does not need nginx running
     echo -e "${BLUE}  Attempting Let's Encrypt validation...${NC}"
     
     certbot certonly \
@@ -42,18 +61,32 @@ generate_certs() {
         --force-renewal \
         2>&1 | tee /tmp/certbot.log
     
-    # Verify if it was successful by searching for the success message
+    # Verify if it was successful
     if grep -q "Successfully received certificate" /tmp/certbot.log; then
-        echo -e "${GREEN}✅ Received successfull message${NC}"
+        echo -e "${GREEN}✅ Received successful message${NC}"
+        
+        # Find the correct certificate directory
+        CERT_DIR=$(find_cert_dir)
+        
+        echo -e "${BLUE}  Looking for certificates in: $CERT_DIR${NC}"
+        
         # Copy certificates to nginx location
-        if [ -f "$LETSENCRYPT_PATH/live/$FULL_DOMAIN/fullchain.pem" ]; then
+        if [ -f "$CERT_DIR/fullchain.pem" ]; then
+            echo -e "${GREEN}✅ Found certificate at: $CERT_DIR${NC}"
             echo -e "${GREEN}✅ Copying certificates to nginx location${NC}"
-            cp $LETSENCRYPT_PATH/live/$FULL_DOMAIN/fullchain.pem $CERT_PATH/cert.pem
-            cp $LETSENCRYPT_PATH/live/$FULL_DOMAIN/privkey.pem $CERT_PATH/key.pem
+            
+            cp "$CERT_DIR/fullchain.pem" $CERT_PATH/cert.pem
+            cp "$CERT_DIR/privkey.pem" $CERT_PATH/key.pem
             chmod 600 $CERT_PATH/key.pem
             chmod 644 $CERT_PATH/cert.pem
+            
             echo -e "${GREEN}✅ Let's Encrypt certificate generated successfully${NC}"
             return 0
+        else
+            echo -e "${RED}❌ Certificate file not found at: $CERT_DIR/fullchain.pem${NC}"
+            echo -e "${RED}   Available directories in $LETSENCRYPT_PATH/live/:${NC}"
+            ls -la $LETSENCRYPT_PATH/live/ 2>/dev/null || echo "   (none found)"
+            return 1
         fi
     fi
     
@@ -77,8 +110,6 @@ generate_self_signed() {
     chmod 644 $CERT_PATH/cert.pem
     
     echo -e "${YELLOW}⚠️ Self-signed certificate generated (temporary)${NC}"
-    echo -e "${YELLOW}   Once DNS is fully propagated, run:${NC}"
-    echo -e "${YELLOW}   docker-compose -f docker-compose.prod.yml restart nginx${NC}"
 }
 
 # Function to configure automatic renewal
@@ -141,7 +172,7 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "${YELLOW}📋 Certificate Information:${NC}"
 if [ -f "$CERT_PATH/cert.pem" ]; then
-    echo "  Certificate: $(ls -lh $CERT_PATH/cert.pem | awk '{print $5}')"
+    echo "  Certificate size: $(ls -lh $CERT_PATH/cert.pem | awk '{print $5}')"
     EXPIRY=$(openssl x509 -in $CERT_PATH/cert.pem -noout -enddate | cut -d= -f2)
     echo "  Expires: $EXPIRY"
 else
