@@ -43,51 +43,45 @@ docker-compose logs -f
 docker-compose stop
 ```
 
-## Production
+## Production (AWS)
 
-### 1. Clone repository into EC2 instance
+### 1. Connect to EC2 instance:
 
-### 2. Setup environment:
-
- - Create `.env` file based on `.env.example` template.
-
-### 3. Create SSL certificate:
-
-Certbot in ubuntu example:
+`Example with AWS EC2 instance (ubuntu)`
 ```bash
-sudo apt update
-sudo apt upgrade
-sudo apt install certbot
-sudo certbot certonly --standalone \
-  -d n8n.{domain}
-cp /etc/letsencrypt/live/n8n.{domain}/cert.pem ./ssl/
-cp /etc/letsencrypt/live/n8n.{domain}/privkey.pem ./ssl/key.pem
-cp /etc/letsencrypt/live/n8n.{domain}/chain.pem ./ssl
-```
-<!-- 
-Certbot in ubuntu example with many domains:
-sudo certbot certonly --standalone \
-  -d subdomain1.{domain} \
-  -d subdomain2.{domain}
--->
-
-
-### 3. Start docker compose:
-
-```bash
-docker-compose up -d
+ssh -i ~/.ssh/{key_name} ubuntu@{ip_address}
 ```
 
-### 3.1 Access n8n: http://n8n.tiagoramirez.dev/
-
-### 3.2 Reload nginx
+### 2. Clone repository into EC2 instance with ssl:
 
 ```bash
-docker-compose exec nginx nginx -s reload
+sudo git clone git@github.com:tiagoramirez/n8n.git
 ```
 
-### 4. Stop docker compose:
+### 3. Setup environment:
+
+- Create `.env` file based on `.env.example` template.
 
 ```bash
-docker-compose stop
+cp .env.example .env
+```
+
+### 4.1. Start docker compose:
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### 4.2. Start docker compose with logs:
+
+```bash
+docker-compose -f docker-compose.prod.yml logs -f nginx
+```
+
+### 5. Access n8n: http://n8n.tiagoramirez.lat/
+
+### 6. Stop docker compose:
+
+```bash
+docker-compose -f docker-compose.prod.yml stop
 ```
