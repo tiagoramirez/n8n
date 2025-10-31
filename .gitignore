@@ -1,1 +1,11 @@
+# SSL (NUNCA a git)
+ssl/
+certbot/
+
+# Environment
 .env
+
+# OS
+.DS_Store
+.vscode/
+*.log

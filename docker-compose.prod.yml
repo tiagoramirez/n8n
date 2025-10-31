@@ -1,0 +1,64 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: nginx-certbot
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-tiagoramirez.lat}
+      - SUBDOMAIN=${SUBDOMAIN:-n8n}
+      - EMAIL=${EMAIL:-tiagoramirez.dev@pm.me}
+      - TZ=${TZ:-America/Argentina/Buenos_Aires}
+    volumes:
+      - ./ssl:/etc/nginx/ssl
+      - ./certbot:/etc/letsencrypt
+    depends_on:
+      - n8n
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    container_name: n8n-app
+    environment:
+      - N8N_HOST=${N8N_HOST:-n8n.tiagoramirez.lat}
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-https}
+      - N8N_PORT=5678
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=${N8N_PROTOCOL}://${N8N_HOST}/
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-America/Argentina/Buenos_Aires}
+      - TZ=${TZ:-America/Argentina/Buenos_Aires}
+      - TRUST_PROXY=true
+      - NODE_OPTIONS=--max-old-space-size=512
+      - N8N_SECURE_COOKIE=true
+      - N8N_PROXY_HOPS=1
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-data:/files
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  n8n_data:
+
+
+networks:
+  app-network:
+    driver: bridge
