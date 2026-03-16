@@ -6,11 +6,11 @@ services:
       - "127.0.0.1:5678:5678"
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      - N8N_HOST=${SUBDOMAIN}.${DOMAIN}
+      - N8N_HOST=${SUBDOMAIN_N8N}.${DOMAIN}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - NODE_ENV=production
-      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN}/
+      - WEBHOOK_URL=https://${SUBDOMAIN_N8N}.${DOMAIN}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
       - TZ=${GENERIC_TIMEZONE}
     volumes:
